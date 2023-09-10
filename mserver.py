@@ -12,7 +12,7 @@ class Config:
         self.load(path)
 
     def load(self, path):
-        with open('config.yaml') as file:
+        with open(path) as file:
             raw = yaml.load(file.read(), Loader=yaml.Loader)
 
         for module in raw['modules']:
@@ -48,7 +48,7 @@ class Module:
 
     def __getitem__(self, user):
         if user not in self.instances:
-            self.instances[user] = self.module.prepare(self.config[user])
+            self.instances[user] = self.module.get(self.config[user])
         return self.instances[user]
 
     def reload(self):
@@ -59,7 +59,8 @@ class Module:
 
 class ModuleHandler:
 
-    def __init__(self, config_path):
+    def __init__(self, config_path, module_path):
+        self.module_path = module_path
         self.config = Config(config_path)
         self.modules = {}
 
@@ -70,7 +71,8 @@ class ModuleHandler:
             return
         if name not in self.modules:
             logging.info('loading %s module', name)
-            self.modules[name] = Module(name, self.config[name])
+            fullname = '{}.{}'.format(self.module_path, name)
+            self.modules[name] = Module(fullname, self.config[name])
         logging.info('running %s module for %s', name, user)
         return self.modules[name][user]
 
