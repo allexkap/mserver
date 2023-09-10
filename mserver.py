@@ -49,7 +49,7 @@ class Module:
 
 
 
-class ServiceHandler:
+class ModuleHandler:
 
     def __init__(self, config_path):
         self.config = Config(config_path)

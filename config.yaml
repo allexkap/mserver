@@ -1,0 +1,8 @@
+modules:
+  module:
+    param: default
+
+users:
+  user:
+    module:
+      param: override
