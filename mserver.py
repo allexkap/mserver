@@ -1,3 +1,4 @@
+import logging
 import importlib
 import yaml
 
@@ -57,11 +58,11 @@ class ModuleHandler:
 
     def __call__(self, name, user):
         if name not in self.modules:
-            self.load(name)
+            logging.info('loading %s module', name)
+            self.modules[name] = Module(name, self.config[name])
+        logging.info('running %s module for %s', name, user)
         return self.modules[name][user]
 
-    def load(self, name):
-        self.modules[name] = Module(name, self.config[name])
-
     def reload(self, name):
+        logging.info('reloading %s module', name)
         self.modules[name].reload()
