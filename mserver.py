@@ -8,6 +8,7 @@ class Config:
 
     def __init__(self, path):
         self.config = {}
+        self.chatid = {}
         self.load(path)
 
     def load(self, path):
@@ -27,8 +28,14 @@ class Config:
                     custom = {}
                 self.config[module][user] = default | custom
 
+        for name in raw['id']:
+            self.chatid[raw['id'][name]] = name
+
     def __getitem__(self, name):
         return self.config[name]
+
+    def who(self, chat):
+        return self.chatid.get(chat, None)
 
 
 
@@ -56,7 +63,11 @@ class ModuleHandler:
         self.config = Config(config_path)
         self.modules = {}
 
-    def __call__(self, name, user):
+    def __call__(self, name, chat):
+        user = self.config.who(chat)
+        if not user:
+            logging.warning('unknown user with char id %d', chat)
+            return
         if name not in self.modules:
             logging.info('loading %s module', name)
             self.modules[name] = Module(name, self.config[name])

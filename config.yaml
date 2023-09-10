@@ -6,3 +6,6 @@ users:
   user:
     module:
       param: override
+
+id:
+  user: chat
