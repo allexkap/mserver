@@ -2,7 +2,9 @@ import importlib
 import yaml
 
 
+
 class Config:
+
     def __init__(self, path):
         self.config = {}
         self.load(path)
@@ -24,20 +26,42 @@ class Config:
                     custom = {}
                 self.config[module][user] = default | custom
 
+    def __getitem__(self, name):
+        return self.config[name]
 
-class ModuleHandler:
 
-    def __init__(self, config_path='config.yaml'):
+
+class Module:
+
+    def __init__(self, name, config):
+        self.config = config
+        self.module = importlib.import_module(name)
+        self.instances = {}
+
+    def __getitem__(self, user):
+        if user not in self.instances:
+            self.instances[user] = self.module.prepare(self.config[user])
+        return self.instances[user]
+
+    def reload(self):
+        self.instances = {}
+        importlib.reload(self.module)
+
+
+
+class ServiceHandler:
+
+    def __init__(self, config_path):
         self.config = Config(config_path)
         self.modules = {}
 
-    def __call__(self, name, *args, **kwargs):
+    def __call__(self, name, user):
         if name not in self.modules:
             self.load(name)
-        return self.modules[name].procces(*args, **kwargs)
+        return self.modules[name][user]
 
     def load(self, name):
-        self.modules[name] = importlib.import_module(name)
+        self.modules[name] = Module(name, self.config[name])
 
     def reload(self, name):
-        importlib.reload(self.modules[name])
+        self.modules[name].reload()
