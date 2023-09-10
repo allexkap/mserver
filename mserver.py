@@ -1,8 +1,34 @@
 import importlib
+import yaml
 
-class ModulesHandler:
 
-    def __init__(self):
+class Config:
+    def __init__(self, path):
+        self.config = {}
+        self.load(path)
+
+    def load(self, path):
+        with open('config.yaml') as file:
+            raw = yaml.load(file.read(), Loader=yaml.Loader)
+
+        for module in raw['modules']:
+            self.config[module] = {}
+            default = raw['modules'][module]
+            if default == None:
+                default = {}
+            for user in raw['users']:
+                if module not in raw['users'][user]:
+                    continue
+                custom = raw['users'][user][module]
+                if custom == None:
+                    custom = {}
+                self.config[module][user] = default | custom
+
+
+class ModuleHandler:
+
+    def __init__(self, config_path='config.yaml'):
+        self.config = Config(config_path)
         self.modules = {}
 
     def __call__(self, name, *args, **kwargs):
